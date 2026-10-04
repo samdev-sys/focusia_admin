@@ -14,6 +14,7 @@ en `/admin` sin mezclarse con la app normal.
 | **Aprendizaje** | Categorías, módulos de referencia y bloques de la visita guiada de INICIO |
 | **Avatares** | Imágenes, voces y mensajes de presentación del onboarding |
 | **Juegos y retos** | Catálogo de enlaces a juegos, con portada, orden y categoría |
+| **Usuarios e IA** | Nivel por mes alcanzado, membresías personalizadas y asistente IA (análisis + chat) |
 
 Los medios aceptan **URL pegada o archivo subido**. Cuando hay ambos, gana la URL.
 
@@ -57,6 +58,9 @@ El panel no tiene modelos propios: es cliente de la API `/api/admin/`, que exige
 - `learning-categories` · `learning-modules` · `guided-tour-blocks` — aprendizaje
 - `avatars` — avatares
 - `juegos` — catálogo de juegos
+- `usuarios` — nivel y progreso por usuario (+ `analizar`)
+- `membresias` — membresías personalizadas (inicio/fin por usuario)
+- `asistente/chat` — chat del admin con la IA
 - `session` · `overview` — perfil del admin y resumen
 
 Los borrados que afectarían progreso ya registrado devuelven `409` con una
