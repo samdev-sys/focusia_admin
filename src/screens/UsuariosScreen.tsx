@@ -4,11 +4,12 @@ import {
 } from 'lucide-react';
 import {
   adminService, leerError,
-  type UsuarioFicha, type ChatMensaje,
+  type UsuarioFicha, type ChatMensaje, type Asignacion,
 } from '../lib/adminApi';
+import AsignacionesEditor from './AsignacionesEditor';
 import {
   Button, Card, PageHeader, Field, Input, Select, Modal, Aviso,
-  Cargando, Vacio, useConfirmacion, useCarga,
+  Cargando, Vacio, Checkbox, useConfirmacion, useCarga,
 } from '../components/ui';
 
 const INSIGNIA_MEMBRESIA: Record<string, string> = {
@@ -119,6 +120,11 @@ export default function UsuariosScreen() {
                         {u.is_staff && (
                           <span className="ml-1.5 text-[9px] font-bold text-purple-600 dark:text-purple-300">
                             STAFF
+                          </span>
+                        )}
+                        {u.asignaciones && Object.keys(u.asignaciones).length > 0 && (
+                          <span className="ml-1.5 px-1.5 py-px rounded-full text-[9px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            asignado
                           </span>
                         )}
                       </p>
@@ -355,8 +361,7 @@ function DetalleUsuario({
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs font-bold text-slate-700 dark:text-gray-200">
                   Membresías
-                </h4>
-                <Button
+                </h4>                <Button
                   variant="suave"
                   onClick={() =>
                     setEditando({ id: 0, fecha_inicio: '', fecha_fin: '', nota: '' })
@@ -416,10 +421,11 @@ function DetalleUsuario({
                 ))}
               </div>
             </div>
+
+            <AsignacionesEditor userId={id} onCambio={onCambio} />
           </div>
         )}
       </Modal>
-
       {confirmar.dialogo}
 
       <Modal

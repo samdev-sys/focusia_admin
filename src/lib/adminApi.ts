@@ -231,6 +231,16 @@ export interface UsuarioFicha {
   membresia: (Membresia & { id: number }) | null;
   sin_membresia: boolean;
   membresias?: Membresia[];
+  asignaciones?: Record<string, number>;
+}
+
+export interface Asignacion {
+  id: number;
+  user: number;
+  tipo: 'tribu' | 'capacitacion' | 'categoria' | 'modulo' | 'bloque' | 'juego' | 'avatar';
+  objeto_id: number;
+  titulo: string;
+  creado: string;
 }
 
 export interface ChatMensaje {
@@ -349,6 +359,14 @@ export const adminService = {
         pregunta,
         historial,
       })
+      .then((r) => r.data),
+
+  // Reparto personalizado de contenido
+  listarAsignaciones: (filtros?: { user?: number; tipo?: string }) =>
+    adminApi.get<Asignacion[]>(`${R}/asignaciones/`, { params: filtros }).then((r) => r.data),
+  reemplazarAsignaciones: (user: number, tipo: string, objeto_ids: number[]) =>
+    adminApi
+      .post<Asignacion[]>(`${R}/asignaciones/reemplazar/`, { user, tipo, objeto_ids })
       .then((r) => r.data),
 };
 
