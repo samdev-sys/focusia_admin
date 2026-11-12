@@ -13,6 +13,7 @@ const TIPOS = [
   { id: 'bloque', label: 'Visita guiada' },
   { id: 'juego', label: 'Juegos' },
   { id: 'avatar', label: 'Avatares' },
+  { id: 'inspiracion', label: 'Inspiración' },
 ] as const;
 
 interface Item {
@@ -34,7 +35,7 @@ export default function AsignacionesEditor({
   const [ok, setOk] = useState(false);
 
   const catalogos = useCarga(async () => {
-    const [temas, meses, categorias, bloques, juegos, avatares, actuales] =
+    const [temas, meses, categorias, bloques, juegos, avatares, inspiracion, actuales] =
       await Promise.all([
         adminService.listarTemasTribu(),
         adminService.listarMeses(),
@@ -42,6 +43,7 @@ export default function AsignacionesEditor({
         adminService.listarBloques(),
         adminService.listarJuegos(),
         adminService.listarAvatares(),
+        adminService.listarInspiracion(),
         adminService.listarAsignaciones({ user: userId }),
       ]);
     const items: Record<string, Item[]> = {
@@ -60,6 +62,9 @@ export default function AsignacionesEditor({
       bloque: bloques.map((b) => ({ id: b.id, texto: b.title })),
       juego: juegos.map((j) => ({ id: j.id, texto: j.titulo })),
       avatar: avatares.map((a) => ({ id: a.id, texto: a.name })),
+      inspiracion: inspiracion.map((r) => ({
+        id: r.id, texto: r.titulo, extra: r.categoria_label || r.categoria,
+      })),
     };
     const sel: Record<string, number[]> = {};
     for (const a of actuales) {

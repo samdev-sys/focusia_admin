@@ -49,7 +49,7 @@ export default function OverviewScreen({ onIr }: { onIr: (s: Seccion) => void })
     );
   }
 
-  const { programa, tribu, aprendizaje, avatares, juegos, usuarios } = datos;
+  const { programa, tribu, aprendizaje, avatares, juegos, inspiracion, usuarios } = datos;
   const sinVideo = programa.capacitaciones_sin_video;
 
   return (
@@ -88,6 +88,13 @@ export default function OverviewScreen({ onIr }: { onIr: (s: Seccion) => void })
           valor={avatares.activos}
           detalle={`${avatares.total} en total`}
         />
+        {inspiracion && (
+          <Stat
+            etiqueta="Inspiración activa"
+            valor={inspiracion.activos}
+            detalle={`${inspiracion.total} recursos en total`}
+          />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
@@ -187,9 +194,10 @@ export default function OverviewScreen({ onIr }: { onIr: (s: Seccion) => void })
           <div className="grid grid-cols-2 gap-2">
             {(
               [
-                ['programa', 'Editar消息称'],
+                ['programa', 'Editar programa'],
                 ['tribu', 'Cambiar tema'],
                 ['juegos', 'Subir un juego'],
+                ['inspiracion', 'Inspiración'],
                 ['avatares', 'Ajustar avatares'],
               ] as [Seccion, string][]
             ).map(([id, label]) => (

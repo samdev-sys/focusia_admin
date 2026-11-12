@@ -9,7 +9,9 @@ import axios, { AxiosError } from 'axios';
  * `/api/admin/`, donde el backend exige `user.is_staff`.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Mismo origen por defecto (prod detrás de proxy y dev con proxy de Vite).
+// Definir VITE_API_URL solo si la API vive en otro origen.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const adminApi = axios.create({
   baseURL: API_BASE_URL,
@@ -192,6 +194,23 @@ export interface Juego {
   actualizado: string;
 }
 
+export interface InspiracionRecurso {
+  id: number;
+  categoria: 'humor' | 'salud' | 'hobbies' | 'viajes' | 'diversion' | 'reflexion';
+  categoria_label: string;
+  titulo: string;
+  miniatura_url: string;
+  miniatura_file: string | null;
+  miniatura_file_url: string;
+  miniatura_resuelta: string;
+  youtube_url: string;
+  youtube_video_id: string;
+  orden: number;
+  activo: boolean;
+  creado: string;
+  actualizado: string;
+}
+
 export interface Overview {
   programa: {
     meses: number;
@@ -204,6 +223,7 @@ export interface Overview {
   aprendizaje: { categorias: number; modulos: number; bloques_guia: number };
   avatares: { total: number; activos: number };
   juegos: { total: number; activos: number };
+  inspiracion: { total: number; activos: number };
   usuarios: { total: number; completaron_mes_actual: number };
 }
 
@@ -237,7 +257,7 @@ export interface UsuarioFicha {
 export interface Asignacion {
   id: number;
   user: number;
-  tipo: 'tribu' | 'capacitacion' | 'categoria' | 'modulo' | 'bloque' | 'juego' | 'avatar';
+  tipo: 'tribu' | 'capacitacion' | 'categoria' | 'modulo' | 'bloque' | 'juego' | 'avatar' | 'inspiracion';
   objeto_id: number;
   titulo: string;
   creado: string;
@@ -252,12 +272,22 @@ export interface ChatMensaje {
 
 const R = '/api/admin';
 
+function unwrapList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: unknown }).results;
+    return Array.isArray(results) ? (results as T[]) : [];
+  }
+  return [];
+}
+
 export const adminService = {
   session: () => adminApi.get<AdminUser>(`${R}/session/`).then((r) => r.data),
   overview: () => adminApi.get<Overview>(`${R}/overview/`).then((r) => r.data),
 
   // Tabla maestra del programa
-  listarMeses: () => adminApi.get<ProgramMonth[]>(`${R}/program-months/`).then((r) => r.data),
+  listarMeses: () =>
+    adminApi.get(`${R}/program-months/`).then((r) => unwrapList<ProgramMonth>(r.data)),
   crearMes: (datos: Partial<ProgramMonth>) =>
     adminApi.post<ProgramMonth>(`${R}/program-months/`, datos).then((r) => r.data),
   editarMes: (id: number, datos: Partial<ProgramMonth>) =>
@@ -272,8 +302,8 @@ export const adminService = {
 
   listarDias: (mes?: number) =>
     adminApi
-      .get<ProgramDay[]>(`${R}/program-days/`, { params: mes ? { month: mes } : {} })
-      .then((r) => r.data),
+      .get(`${R}/program-days/`, { params: mes ? { month: mes } : {} })
+      .then((r) => unwrapList<ProgramDay>(r.data)),
   crearDia: (datos: Partial<ProgramDay>) =>
     adminApi.post<ProgramDay>(`${R}/program-days/`, datos).then((r) => r.data),
   editarDia: (id: number, datos: Partial<ProgramDay>) =>
@@ -281,7 +311,8 @@ export const adminService = {
   borrarDia: (id: number) => adminApi.delete(`${R}/program-days/${id}/`),
 
   // Tribu
-  listarTemasTribu: () => adminApi.get<TribuTema[]>(`${R}/tribu-themes/`).then((r) => r.data),
+  listarTemasTribu: () =>
+    adminApi.get(`${R}/tribu-themes/`).then((r) => unwrapList<TribuTema>(r.data)),
   crearTemaTribu: (datos: Partial<TribuTema>) =>
     adminApi.post<TribuTema>(`${R}/tribu-themes/`, datos).then((r) => r.data),
   editarTemaTribu: (id: number, datos: Partial<TribuTema>) =>
@@ -292,7 +323,7 @@ export const adminService = {
 
   // Aprendizaje
   listarCategorias: () =>
-    adminApi.get<LearningCategory[]>(`${R}/learning-categories/`).then((r) => r.data),
+    adminApi.get(`${R}/learning-categories/`).then((r) => unwrapList<LearningCategory>(r.data)),
   crearCategoria: (datos: Partial<LearningCategory>) =>
     adminApi.post<LearningCategory>(`${R}/learning-categories/`, datos).then((r) => r.data),
   editarCategoria: (id: number, datos: Partial<LearningCategory>) =>
@@ -301,10 +332,10 @@ export const adminService = {
 
   listarModulos: (categoria?: number) =>
     adminApi
-      .get<LearningModule[]>(`${R}/learning-modules/`, {
+      .get(`${R}/learning-modules/`, {
         params: categoria ? { category: categoria } : {},
       })
-      .then((r) => r.data),
+      .then((r) => unwrapList<LearningModule>(r.data)),
   crearModulo: (datos: Partial<LearningModule>) =>
     adminApi.post<LearningModule>(`${R}/learning-modules/`, datos).then((r) => r.data),
   editarModulo: (id: number, datos: Partial<LearningModule>) =>
@@ -312,7 +343,8 @@ export const adminService = {
   borrarModulo: (id: number) => adminApi.delete(`${R}/learning-modules/${id}/`),
 
   // Visita guiada
-  listarBloques: () => adminApi.get<GuidedTourBlock[]>(`${R}/guided-tour-blocks/`).then((r) => r.data),
+  listarBloques: () =>
+    adminApi.get(`${R}/guided-tour-blocks/`).then((r) => unwrapList<GuidedTourBlock>(r.data)),
   crearBloque: (datos: Partial<GuidedTourBlock>) =>
     adminApi.post<GuidedTourBlock>(`${R}/guided-tour-blocks/`, datos).then((r) => r.data),
   editarBloque: (id: number, datos: Partial<GuidedTourBlock>) =>
@@ -320,7 +352,8 @@ export const adminService = {
   borrarBloque: (id: number) => adminApi.delete(`${R}/guided-tour-blocks/${id}/`),
 
   // Avatares
-  listarAvatares: () => adminApi.get<Avatar[]>(`${R}/avatars/`).then((r) => r.data),
+  listarAvatares: () =>
+    adminApi.get(`${R}/avatars/`).then((r) => unwrapList<Avatar>(r.data)),
   crearAvatar: (datos: Partial<Avatar>) =>
     adminApi.post<Avatar>(`${R}/avatars/`, datos).then((r) => r.data),
   editarAvatar: (id: number, datos: Partial<Avatar>) =>
@@ -328,16 +361,26 @@ export const adminService = {
   borrarAvatar: (id: number) => adminApi.delete(`${R}/avatars/${id}/`),
 
   // Juegos
-  listarJuegos: () => adminApi.get<Juego[]>(`${R}/juegos/`).then((r) => r.data),
+  listarJuegos: () =>
+    adminApi.get(`${R}/juegos/`).then((r) => unwrapList<Juego>(r.data)),
   crearJuego: (datos: Partial<Juego>) =>
     adminApi.post<Juego>(`${R}/juegos/`, datos).then((r) => r.data),
   editarJuego: (id: number, datos: Partial<Juego>) =>
     adminApi.patch<Juego>(`${R}/juegos/${id}/`, datos).then((r) => r.data),
   borrarJuego: (id: number) => adminApi.delete(`${R}/juegos/${id}/`),
 
+  // Centro de Inspiración
+  listarInspiracion: (params?: { categoria?: string; activo?: boolean }) =>
+    adminApi.get(`${R}/inspiracion/`, { params }).then((r) => unwrapList<InspiracionRecurso>(r.data)),
+  crearInspiracion: (datos: FormData | Partial<InspiracionRecurso>) =>
+    adminApi.post<InspiracionRecurso>(`${R}/inspiracion/`, datos).then((r) => r.data),
+  editarInspiracion: (id: number, datos: FormData | Partial<InspiracionRecurso>) =>
+    adminApi.patch<InspiracionRecurso>(`${R}/inspiracion/${id}/`, datos).then((r) => r.data),
+  borrarInspiracion: (id: number) => adminApi.delete(`${R}/inspiracion/${id}/`),
+
   // Usuarios, niveles y membresías
   listarUsuarios: (filtros?: { q?: string; nivel?: number; membresia?: string }) =>
-    adminApi.get<UsuarioFicha[]>(`${R}/usuarios/`, { params: filtros }).then((r) => r.data),
+    adminApi.get(`${R}/usuarios/`, { params: filtros }).then((r) => unwrapList<UsuarioFicha>(r.data)),
   verUsuario: (id: number) =>
     adminApi.get<UsuarioFicha>(`${R}/usuarios/${id}/`).then((r) => r.data),
   analizarUsuario: (id: number) =>
@@ -363,11 +406,11 @@ export const adminService = {
 
   // Reparto personalizado de contenido
   listarAsignaciones: (filtros?: { user?: number; tipo?: string }) =>
-    adminApi.get<Asignacion[]>(`${R}/asignaciones/`, { params: filtros }).then((r) => r.data),
+    adminApi.get(`${R}/asignaciones/`, { params: filtros }).then((r) => unwrapList<Asignacion>(r.data)),
   reemplazarAsignaciones: (user: number, tipo: string, objeto_ids: number[]) =>
     adminApi
-      .post<Asignacion[]>(`${R}/asignaciones/reemplazar/`, { user, tipo, objeto_ids })
-      .then((r) => r.data),
+      .post(`${R}/asignaciones/reemplazar/`, { user, tipo, objeto_ids })
+      .then((r) => unwrapList<Asignacion>(r.data)),
 };
 
 /** Login del panel. Usa el mismo endpoint que la app; el permiso se valida después. */

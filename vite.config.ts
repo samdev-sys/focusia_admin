@@ -4,9 +4,13 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
-  const api = env.VITE_API_URL || 'http://localhost:8000';
+  const api = env.VITE_API_URL || 'http://127.0.0.1:8000';
+  // '/' para sitio en raíz (ej. Netlify). '/admin/' para servir bajo subruta.
+  const base = env.VITE_BASE || '/';
 
   return {
+    base,
+
     plugins: [react(), tailwindcss()],
 
     server: {
@@ -20,8 +24,6 @@ export default defineConfig(({ mode }) => {
     },
 
     build: {
-      // Se sirve en /admin. `base` relativo para que funcione tanto en un
-      // subdirectorio como en la raíz de un dominio propio.
       outDir: 'dist',
       sourcemap: mode !== 'production',
     },

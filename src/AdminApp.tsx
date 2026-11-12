@@ -9,6 +9,7 @@ import TribuScreen from './screens/TribuScreen';
 import AprendizajeScreen from './screens/AprendizajeScreen';
 import AvatarsScreen from './screens/AvatarsScreen';
 import GamesScreen from './screens/GamesScreen';
+import InspiracionScreen from './screens/InspiracionScreen';
 import UsuariosScreen from './screens/UsuariosScreen';
 
 /**
@@ -75,6 +76,7 @@ export default function AdminApp() {
       {seccion === 'aprendizaje' && <AprendizajeScreen />}
       {seccion === 'avatares' && <AvatarsScreen />}
       {seccion === 'juegos' && <GamesScreen />}
+      {seccion === 'inspiracion' && <InspiracionScreen />}
     </AdminLayout>
   );
 }

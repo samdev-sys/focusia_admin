@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   LayoutDashboard, GraduationCap, Users2, BookOpen, Sparkles,
-  Gamepad2, LogOut, Menu, X, ChevronDown, Bot,
+  Gamepad2, Lightbulb, LogOut, Menu, X, ChevronDown, Bot,
 } from 'lucide-react';
 import type { AdminUser } from '../lib/adminApi';
 
@@ -12,6 +12,7 @@ export type Seccion =
   | 'aprendizaje'
   | 'avatares'
   | 'juegos'
+  | 'inspiracion'
   | 'usuarios';
 
 const NAV: { id: Seccion; label: string; icon: typeof LayoutDashboard; grupo: string }[] = [
@@ -22,6 +23,7 @@ const NAV: { id: Seccion; label: string; icon: typeof LayoutDashboard; grupo: st
   { id: 'aprendizaje', label: 'Aprendizaje', icon: BookOpen, grupo: 'Contenido' },
   { id: 'avatares', label: 'Avatares', icon: Sparkles, grupo: 'Contenido' },
   { id: 'juegos', label: 'Juegos y retos', icon: Gamepad2, grupo: 'Contenido' },
+  { id: 'inspiracion', label: 'Centro de Inspiración', icon: Lightbulb, grupo: 'Contenido' },
 ];
 
 const GRUPOS = ['General', 'Contenido'];
