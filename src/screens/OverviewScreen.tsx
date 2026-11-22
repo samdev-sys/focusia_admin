@@ -49,8 +49,17 @@ export default function OverviewScreen({ onIr }: { onIr: (s: Seccion) => void })
     );
   }
 
-  const { programa, tribu, aprendizaje, avatares, juegos, inspiracion, usuarios } = datos;
-  const sinVideo = programa.capacitaciones_sin_video;
+  const programa = {
+    meses: 0, dias: 0, meses_completos: 0, meses_sin_capacitacion: [] as number[], capacitaciones_sin_video: [] as number[],
+    ...(datos.programa ?? {}),
+  };
+  const tribu = { temas: 0, tema_activo: null, ...(datos.tribu ?? {}) };
+  const aprendizaje = { categorias: 0, modulos: 0, bloques_guia: 0, ...(datos.aprendizaje ?? {}) };
+  const avatares = { total: 0, activos: 0, ...(datos.avatares ?? {}) };
+  const juegos = { total: 0, activos: 0, ...(datos.juegos ?? {}) };
+  const inspiracion = datos.inspiracion;
+  const usuarios = { total: 0, completaron_mes_actual: 0, ...(datos.usuarios ?? {}) };
+  const sinVideo = programa.capacitaciones_sin_video ?? [];
 
   return (
     <>
@@ -114,13 +123,13 @@ export default function OverviewScreen({ onIr }: { onIr: (s: Seccion) => void })
             <Fila etiqueta="Días cargados" valor={programa.dias} />
             <Fila
               etiqueta="Meses sin capacitación"
-              valor={programa.meses_sin_capacitacion.length}
+              valor={(programa.meses_sin_capacitacion ?? []).length}
               detalle={
-                programa.meses_sin_capacitacion.length
-                  ? `Meses ${programa.meses_sin_capacitacion.join(', ')}`
+                (programa.meses_sin_capacitacion ?? []).length
+                  ? `Meses ${(programa.meses_sin_capacitacion ?? []).join(', ')}`
                   : 'Todo bien'
               }
-              alerta={programa.meses_sin_capacitacion.length > 0}
+              alerta={(programa.meses_sin_capacitacion ?? []).length > 0}
             />
             <Fila
               etiqueta="Capacitaciones sin video"

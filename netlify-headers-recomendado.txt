@@ -1,0 +1,31 @@
+# Configuración recomendada de cabeceras para Netlify (Focussia Web)
+# Ajustar dominios/recursos reales antes de aplicar. Verificar en staging/preview.
+
+# Opción A: archivo `_headers` (debe estar en el directorio publicado, p. ej. dist/)
+# /*
+#   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.unsplash.com https://ui-avatars.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://focussiaweb-production.up.railway.app https://nominatim.openstreetmap.org https://api.open-meteo.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+#   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=()
+#   X-Content-Type-Options: nosniff
+#   X-Frame-Options: DENY
+#   Referrer-Policy: strict-origin-when-cross-origin
+#   X-XSS-Protection: 0
+
+# Opción B: netlify.toml (en la raíz/base del repositorio del sitio)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Probar primero como Content-Security-Policy-Report-Only y revisar violaciones en consola
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.unsplash.com https://ui-avatars.com; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https://focussiaweb-production.up.railway.app https://nominatim.openstreetmap.org https://api.open-meteo.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=(), payment=()"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-XSS-Protection = "0"
+
+# Notas:
+# - Si Gemini se mantiene en cliente, añadir a connect-src: https://generativelanguage.googleapis.com (preferible moverlo al backend y rotar clave).
+# - Si avatar_url permite URLs arbitrarias, puede requerirse img-src más amplio; mejor limitar a orígenes conocidos.
+# - Verificar que _headers o netlify.toml se incluya en el artefacto desplegado.
+# - Tras desplegar, validar:
+#   curl -sI https://focussia.netlify.app/ | grep -iE 'content-security|permissions-policy|strict-transport|x-frame|x-content-type-options|referrer-policy|x-xss-protection'
+#   curl -sI https://focussia.netlify.app/robots.txt | grep -iE 'content-security|permissions-policy'

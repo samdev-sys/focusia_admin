@@ -178,9 +178,10 @@ export function Checkbox({
 }
 
 /**
- * Campo de medio: URL externa o archivo subido, nunca ambos a la vez en la
- * interfaz pero ambos aceptados por el backend. La URL manda si está puesta,
- * así que avisamos cuál de los dos va a prevalecer.
+ * Campo de medio: se elige una fuente (URL o archivo del dispositivo) y el
+ * panel manda solo esa. El backend también acepta URL + archivo, pero ahí la
+ * URL prevalece; acá evitamos esa ambigüedad para que no haya condicionales
+ * confusos.
  */
 export function MediaField({
   etiqueta,
@@ -202,18 +203,59 @@ export function MediaField({
   ayuda?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [modo, setModo] = useState<'url' | 'archivo'>(
+    archivo ? 'archivo' : 'url',
+  );
+
+  const elegirArchivo = (f: File | null) => {
+    onArchivo(f);
+    if (f) {
+      // Subir un archivo deja la URL vacía: solo una fuente a la vez.
+      onUrl('');
+      setModo('archivo');
+      return;
+    }
+    setModo('url');
+  };
+
+  const escribirUrl = (v: string) => {
+    onUrl(v);
+    if (v.trim()) {
+      onArchivo(null);
+      if (inputRef.current) inputRef.current.value = '';
+      setModo('url');
+    }
+  };
 
   return (
     <div className="space-y-2">
       <Field etiqueta={etiqueta} ayuda={ayuda}>
         <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-lg border border-gray-200 dark:border-white/10 p-0.5 bg-gray-50 dark:bg-white/5">
+            {(['url', 'archivo'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setModo(m)}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-semibold transition-colors ${
+                  modo === m
+                    ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
+                }`}
+              >
+                {m === 'url' ? 'URL' : 'Archivo'}
+              </button>
+            ))}
+          </div>
+
           <div className="relative flex-1">
             <Link2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <Input
               value={url}
-              onChange={(e) => onUrl(e.target.value)}
+              onChange={(e) => escribirUrl(e.target.value)}
               placeholder="https://…"
               className="pl-8"
+              disabled={modo === 'archivo'}
             />
           </div>
           <input
@@ -221,20 +263,21 @@ export function MediaField({
             type="file"
             accept={acepta}
             className="hidden"
-            onChange={(e) => onArchivo(e.target.files?.[0] ?? null)}
+            onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)}
           />
-          <Button variant="ghost" onClick={() => inputRef.current?.click()}>
+          <Button
+            variant="ghost"
+            onClick={() => inputRef.current?.click()}
+            disabled={modo === 'url' && !archivo}
+          >
             <Upload className="w-3.5 h-3.5" />
-            Subir
+            {archivo ? archivo.name : 'Subir'}
           </Button>
           {archivo && (
             <Button
               variant="ghost"
               titulo="Quitar el archivo seleccionado"
-              onClick={() => {
-                onArchivo(null);
-                if (inputRef.current) inputRef.current.value = '';
-              }}
+              onClick={() => elegirArchivo(null)}
             >
               <X className="w-3.5 h-3.5" />
             </Button>
@@ -242,10 +285,16 @@ export function MediaField({
         </div>
       </Field>
 
-      {archivo && (
-        <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-          <AlertTriangle className="w-3 h-3" />
-          Se subirá “{archivo.name}”. Si también hay URL, gana la URL.
+      {modo === 'archivo' && archivo && (
+        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3 h-3" />
+          Se subirá “{archivo.name}”.
+        </p>
+      )}
+      {modo === 'url' && url.trim() && (
+        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3 h-3" />
+          Se usará la URL escrita.
         </p>
       )}
 
